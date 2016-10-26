@@ -5,7 +5,11 @@ endif
 let g:loaded_python_tools = 1
 
 " <Plug> mappings for functions
-nnoremap <silent> <Plug>(python_tools_run_pytest_on_class_at_cursor)
-\   :call python_tools#pytest#RunPytestOnClassAtCursor()<Return>
-nnoremap <silent> <Plug>(python_tools_run_pytest_on_function_at_cursor)
-\   :call python_tools#pytest#RunPytestOnFunctionAtCursor()<Return>
+nnoremap <silent> <Plug>(python_tools_pytest_class)
+\   :call python_tools#pytest#RunPytestOnClassAtCursor(0)<Return>
+nnoremap <silent> <Plug>(python_tools_pytest_class_reuse_db)
+\   :call python_tools#pytest#RunPytestOnClassAtCursor(1)<Return>
+nnoremap <silent> <Plug>(python_tools_pytest_function)
+\   :call python_tools#pytest#RunPytestOnFunctionAtCursor(0)<Return>
+nnoremap <silent> <Plug>(python_tools_pytest_function_reuse_db)
+\   :call python_tools#pytest#RunPytestOnFunctionAtCursor(1)<Return>

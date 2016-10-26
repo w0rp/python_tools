@@ -16,14 +16,18 @@ let g:airline_section_y = '%{python_tools#statusline#GetStatus()}'
 ## Running py.test on files
 
 Two plug commands are available for running py.test on classes or methods
-you are looking at: `<Plug>(python_tools_run_pytest_on_class_at_cursor)` and
-`<Plug>(python_tools_run_pytest_on_function_at_cursor)`. They will allow you
+you are looking at: `<Plug>(python_tools_pytest_class)` and
+`<Plug>(python_tools_pytest_function)`. They will allow you
 to run an entire class of tests, or just one method or function. You
 can create easy keybindings for them in a Python ftplugin file.
 
 ```vim
-map <buffer> <C-y> <Plug>(python_tools_run_pytest_on_class_at_cursor)
+map <buffer> <C-y> <Plug>(python_tools_pytest_class)
 ```
+
+If you want to reuse the existing test database, use
+`<Plug>(python_tools_pytest_class_reuse_db)` or
+`<Plug>(python_tools_pytest_function_reuse_db)` instead.
 
 If you are using Django and the relevant plugins for your project, you can
 enable an argument to disable migrations:

@@ -2,7 +2,7 @@
 " Description: This module provides some means of running py.text on files
 "   we are editing.
 
-function! python_tools#pytest#RunPytest(arguments) abort
+function! python_tools#pytest#RunPytest(arguments, reuse_db) abort
     let l:pytest_executable = findfile('ve/bin/py.test', ',;')
 
     let l:command = l:pytest_executable
@@ -11,8 +11,23 @@ function! python_tools#pytest#RunPytest(arguments) abort
         let l:command .= ' --nomigrations'
     endif
 
-    let l:command = l:command . ' --reuse-db ' . a:arguments
-    let l:project_dir = finddir('.git', '.;')
+    if a:reuse_db
+        let l:command = l:command . ' --reuse-db'
+    endif
+
+    let l:command .= ' ' . a:arguments
+
+    let l:pytest_file = findfile('pytest.ini', ',;')
+
+    if !empty(l:pytest_file)
+        " Use the directory which contains the pytest.ini file, if we find
+        " that.
+        let l:project_dir = fnamemodify(l:pytest_file, ':h')
+    else
+        " Use the root from git if we can't find the directory with the
+        " pytest.ini file.
+        let l:project_dir = finddir('.git', '.;')
+    endif
 
     " Switch to the project directory for the command if we can.
     if !empty(l:project_dir)
@@ -35,38 +50,46 @@ function! python_tools#pytest#RunPytest(arguments) abort
     \   'err_buf': l:buffer,
     \})
 
+    " vint: -ProhibitAutocmdWithNoGroup
     autocmd BufUnload <buffer> call job_stop(b:job)
 endfunction
 
-function! python_tools#pytest#RunPytestOnFile(filename)
-    call python_tools#pytest#RunPytest(fnameescape(a:filename))
+function! python_tools#pytest#RunPytestOnFile(filename, reuse_db)
+    call python_tools#pytest#RunPytest(fnameescape(a:filename), a:reuse_db)
 endfunction
 
-function! python_tools#pytest#RunPytestOnClass(filename, class)
-    call python_tools#pytest#RunPytest(fnameescape(a:filename) . '::' . a:class)
+function! python_tools#pytest#RunPytestOnClass(filename, class, reuse_db)
+    call python_tools#pytest#RunPytest(
+    \   fnameescape(a:filename) . '::' . a:class,
+    \   a:reuse_db
+    \)
 endfunction
 
-function! python_tools#pytest#RunPytestOnFunction(filename, class, def)
+function! python_tools#pytest#RunPytestOnFunction(filename, class, def, reuse_db)
     let l:command = fnameescape(a:filename)
 
     if !empty(a:class)
         let l:command .= '::' . a:class
     endif
 
-    call python_tools#pytest#RunPytest(l:command . '::' . a:def)
+    call python_tools#pytest#RunPytest(l:command . '::' . a:def, a:reuse_db)
 endfunction
 
-function! python_tools#pytest#RunPytestOnClassAtCursor() abort
+function! python_tools#pytest#RunPytestOnClassAtCursor(reuse_db) abort
     let l:info = python_tools#cursor_info#GetInfo()
 
     if !empty(l:info.class)
-        call python_tools#pytest#RunPytestOnClass(expand('%:p'), l:info.class)
+        call python_tools#pytest#RunPytestOnClass(
+        \   expand('%:p'),
+        \   l:info.class,
+        \   a:reuse_db
+        \)
     else
         echoerr 'No class found at cursor!'
     endif
 endfunction
 
-function! python_tools#pytest#RunPytestOnFunctionAtCursor() abort
+function! python_tools#pytest#RunPytestOnFunctionAtCursor(reuse_db) abort
     let l:info = python_tools#cursor_info#GetInfo()
 
     if !empty(l:info.def)
@@ -75,7 +98,8 @@ function! python_tools#pytest#RunPytestOnFunctionAtCursor() abort
         call python_tools#pytest#RunPytestOnFunction
         \   (expand('%:p'),
         \   l:info.class,
-        \   l:info.def
+        \   l:info.def,
+        \   a:reuse_db
         \)
     else
         echoerr 'No function found at cursor!'
