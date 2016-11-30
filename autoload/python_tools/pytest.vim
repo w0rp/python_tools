@@ -2,21 +2,31 @@
 " Description: This module provides some means of running py.text on files
 "   we are editing.
 
+function! s:RunPytestCommand(command) abort
+    let l:command = a:command
+
+    if has('win32')
+        let l:command = 'cmd /c ' . l:command
+    else
+        let l:command = split(&shell) + split(&shellcmdflag) + [l:command]
+    endif
+
+    :new +set\ filetype=pytest
+    let l:buffer = bufnr('%')
+
+    let b:job = job_start(l:command, {
+    \   'out_io': 'buffer',
+    \   'out_buf': l:buffer,
+    \   'err_io': 'buffer',
+    \   'err_buf': l:buffer,
+    \})
+
+    " vint: -ProhibitAutocmdWithNoGroup
+    autocmd BufUnload <buffer> call job_stop(b:job)
+endfunction
+
 function! python_tools#pytest#RunPytest(arguments, reuse_db) abort
     let l:pytest_executable = findfile('ve/bin/py.test', ',;')
-
-    let l:command = l:pytest_executable
-
-    if get(g:, 'python_tools_pytest_no_migrations')
-        let l:command .= ' --nomigrations'
-    endif
-
-    if a:reuse_db
-        let l:command = l:command . ' --reuse-db'
-    endif
-
-    let l:command .= ' ' . a:arguments
-
     let l:pytest_file = findfile('pytest.ini', ',;')
 
     if !empty(l:pytest_file)
@@ -28,6 +38,23 @@ function! python_tools#pytest#RunPytest(arguments, reuse_db) abort
         " pytest.ini file.
         let l:project_dir = finddir('.git', '.;')
     endif
+
+    let l:command = l:pytest_executable
+
+    if get(g:, 'python_tools_pytest_no_migrations')
+        let l:command .= ' --nomigrations'
+    endif
+
+    if a:reuse_db
+        let l:command .= ' --reuse-db'
+    endif
+
+    " Switch to the project directory for the command if we can.
+    if !empty(l:project_dir)
+        let l:command = 'cd ' . fnameescape(l:project_dir) . ' && ' . l:command
+    endif
+
+    let l:command .= ' ' . a:arguments
 
     " Switch to the project directory for the command if we can.
     if !empty(l:project_dir)
