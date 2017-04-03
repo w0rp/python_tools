@@ -26,6 +26,11 @@ function! s:RunPytestCommand(command) abort
 endfunction
 
 function! python_tools#pytest#RunPytest(arguments, reuse_db) abort
+    " Save the file first, if it has been modified.
+    if &modified
+        :w
+    endif
+
     let l:pytest_executable = findfile('ve/bin/py.test', ',;')
     let l:pytest_file = findfile('pytest.ini', ',;')
 
@@ -39,10 +44,10 @@ function! python_tools#pytest#RunPytest(arguments, reuse_db) abort
         let l:project_dir = finddir('.git', '.;')
     endif
 
-    let l:command = l:pytest_executable
+    let l:command = l:pytest_executable . ' --tb=short'
 
-    if get(g:, 'python_tools_pytest_no_migrations')
-        let l:command .= ' --nomigrations'
+    if get(g:, 'python_tools_pytest_verbose')
+        let l:command .= ' -v'
     endif
 
     if a:reuse_db
@@ -68,6 +73,7 @@ function! python_tools#pytest#RunPytest(arguments, reuse_db) abort
     endif
 
     :new +set\ filetype=pytest
+
     let l:buffer = bufnr('%')
 
     let b:job = job_start(l:command, {
