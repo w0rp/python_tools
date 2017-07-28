@@ -52,6 +52,8 @@ function! python_tools#pytest#RunPytest(arguments, reuse_db) abort
 
     if a:reuse_db
         let l:command .= ' --reuse-db'
+    else
+        let l:command .= ' --create-db'
     endif
 
     " Switch to the project directory for the command if we can.
