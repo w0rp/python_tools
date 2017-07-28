@@ -47,7 +47,7 @@ function! python_tools#pytest#RunPytest(arguments, reuse_db) abort
     let l:command = l:pytest_executable . ' --tb=short'
 
     if get(g:, 'python_tools_pytest_verbose')
-        let l:command .= ' -v'
+        let l:command .= ' -vv'
     endif
 
     if a:reuse_db
