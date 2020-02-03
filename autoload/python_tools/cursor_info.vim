@@ -28,8 +28,14 @@ function! python_tools#cursor_info#GetInfo() abort
     endif
 
     if l:def_line && (!l:class_line || l:def_line > l:class_line)
+        let l:def_line_text = getline(l:def_line)
+
+        if l:def_line_text[0:2] is# 'def' && !empty(l:info.class)
+            let l:info.class = ''
+        endif
+
         let l:info.def = substitute(
-        \   getline(l:def_line),
+        \   l:def_line_text,
         \   '.*def \([a-zA-Z0-9_]\+\).*',
         \   '\1',
         \   ''
