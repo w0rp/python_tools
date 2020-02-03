@@ -49,7 +49,7 @@ function! python_tools#cursor_info#GenerateSuperCall() abort
     let l:info = python_tools#cursor_info#GetInfo()
 
     if !empty(l:info.class) && !empty(l:info.def)
-        return printf('super(%s, self).%s', l:info.class, l:info.def)
+        return printf('super().%s', l:info.def)
     endif
 
     throw 'Could not determine the super class!'
